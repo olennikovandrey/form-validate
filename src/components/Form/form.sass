@@ -1,5 +1,5 @@
 form
-  margin: 0 auto
+  margin: 15px auto 0
   padding: 15px 10px
   width: 40%
   position: absolute
@@ -18,7 +18,7 @@ form
   & span
     text-align: center
     font-size: 1.5rem
-    margin-bottom: 15px
+    margin-bottom: 5px
 
   & div
     position: relative
@@ -43,6 +43,20 @@ form
 
   & input[name="user"]
     text-transform: uppercase
+
+  & input[type="date"]
+    position: relative
+    content: ""
+    &::-webkit-calendar-picker-indicator
+      position: absolute
+      top: 0
+      left: 0
+      right: 0
+      bottom: 0
+      width: auto
+      height: auto
+      color: transparent
+      background: transparent
 
   & label
     margin: 5px 0

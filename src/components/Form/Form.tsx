@@ -83,7 +83,7 @@ emailValidator = (event: React.FormEvent<HTMLInputElement>): void => {
     email: event.currentTarget.value.toLowerCase()
   });
   const email = this.state.email;
-  const regexp = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/;
+  const regexp = /^([^.@]+)(\.[^.@]+)*@([a-z]+\.)+([a-z]+){2,4}$/;
   const isEmail = regexp.test(email);
 
   if (!email) {
@@ -197,7 +197,7 @@ componentWillUnmount() {
     return (
       <React.Fragment>
         <form onSubmit={ this.handleSubmit }>
-          <span>Please, fill in all the fields</span>
+          <span>Please, fill in all fields</span>
           <div>
             <label>Name, surname (latin only)</label>
             <input
@@ -205,9 +205,9 @@ componentWillUnmount() {
               name="user"
               data-state=""
               value={ user }
-              onChange={ this.userValidator }
               onBlur={ this.userValidator }
               onInput={ this.userValidator }
+              onKeyUp={ this.userValidator }
             />
             { userError && <p>{ userError }</p> }
           </div>
@@ -218,9 +218,9 @@ componentWillUnmount() {
               type="email"
               data-state=""
               value={ email }
-              onChange={ this.emailValidator }
               onBlur={ this.emailValidator }
               onInput={ this.emailValidator }
+              onKeyUp={ this.emailValidator }
             />
             { emailError && <p>{ emailError }</p> }
           </div>
@@ -233,7 +233,7 @@ componentWillUnmount() {
               value={ phone }
               placeholder="+7(000)000-00-00"
               id="phone"
-              onChange={ this.phoneMaskValidator }
+              onKeyUp={ this.phoneMaskValidator }
               onBlur={ this.phoneMaskValidator }
               onInput={ this.phoneMaskValidator }
             />
@@ -251,10 +251,11 @@ componentWillUnmount() {
           </div>
 
           <div>
-            <label>Your message</label>
+            <label>Your message (300 characters maximum)</label>
             <textarea
               data-state=""
               value={ message }
+              maxLength={ 300 }
               onChange={ this.messageValidator}
               onBlur={ this.messageValidator }
             />

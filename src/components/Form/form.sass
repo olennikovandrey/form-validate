@@ -1,19 +1,24 @@
-form
-  margin: 15px auto 0
-  padding: 15px 10px
-  width: 40%
+.form-wrapper
   position: absolute
+  width: 40%
   top: 50%
   left: 50%
   transform: translate(-50%, -50%)
   display: flex
   flex-direction: column
-  border: 2px solid black
-  border-radius: 5px
+  box-sizing: border-box
   @media only screen and (max-width: 768px)
     width: 50%
   @media only screen and (max-width: 425px)
     width: 90%
+
+form
+  margin: 15px auto 15px
+  padding: 15px 10px
+  width: 100%
+  box-sizing: border-box
+  border: 2px solid black
+  border-radius: 5px
 
   & span
     text-align: center
@@ -92,6 +97,7 @@ form
   & button
     margin-top: 15px
     height: 30px
+    width: 100%
     background-color: #3a80cf
     color: #fff
     border: none
@@ -105,3 +111,8 @@ form
     cursor: not-allowed
     background-color: #8f8f8f
     color: #000
+
+.server-answer
+  text-align: center
+  font-size: 1.2rem
+  text-transform: uppercase

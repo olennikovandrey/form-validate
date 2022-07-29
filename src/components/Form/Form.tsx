@@ -1,24 +1,7 @@
+import Loader from "../Loader/Loader"
 import IMask from "imask";
+import { FormState } from "types/types";
 import React, { Component } from "react";
-
-type FormState = {
-  user: string,
-  email: string,
-  phone: string,
-  birth: string,
-  message: string,
-  userValid: boolean,
-  emailValid: boolean,
-  phoneValid: boolean,
-  birthValid: boolean,
-  messageValid: boolean,
-  formValid: boolean,
-  userError: string,
-  emailError: string,
-  phoneError: string,
-  birthError: string,
-  messageError: string
-};
 
 type FormProps = {};
 
@@ -29,7 +12,7 @@ export default class Form extends Component<FormProps, FormState> {
       user: "",
       email: "",
       phone: "",
-      birth: "",
+      birth: "" || null,
       message: "",
       userValid: false,
       userError: "",
@@ -41,7 +24,8 @@ export default class Form extends Component<FormProps, FormState> {
       birthError: "",
       messageValid: false,
       messageError: "",
-      formValid: false
+      formValid: false,
+      pending: false
     };
   };
 
@@ -178,9 +162,51 @@ formValidChecker = (): void => {
   }
 };
 
+sendAjaxRequest = (data: object) => {
+  this.setState({
+    pending: true,
+    formValid: false
+  });
+
+  const allFields = document.querySelectorAll(".field");
+  const serverAnswerField = document.querySelector(".server-answer");
+  const xhr = new XMLHttpRequest();
+
+  //xhr.open("POST", "https://62e43a583c89b95396d929bb.mockapi.io/olennikovandrey/formvalid", true);
+  xhr.open("POST", "https://api.jsonbin.io/v3/b", true);
+  xhr.setRequestHeader("Content-Type", "application/json");
+  xhr.setRequestHeader("X-Master-Key", "$2b$10$aOlYwEThIpuMzMIMsI64L.4uqkdh/GrM0p2T48mKdpi5HaTDmmQfq");
+  xhr.send(JSON.stringify(data));
+
+  xhr.onload = () => {
+    this.setState({
+      pending: false,
+      user: "",
+      email: "",
+      phone: "",
+      birth: "",
+      message: "",
+    });
+    allFields.forEach(function(el) { el.setAttribute("data-state", "") });
+    document.getElementsByTagName("form")[0].reset()
+    //serverAnswerField!.innerHTML = (JSON.parse(xhr.responseText).text);
+    serverAnswerField!.innerHTML = (JSON.parse(xhr.responseText).record.phone);
+    setTimeout(() => { serverAnswerField!.innerHTML = "" }, 7500);
+  };
+
+  xhr.onerror = () => document.querySelector(".server-answer")!.innerHTML = "Something wrong, try again";
+};
+
 handleSubmit = (event: React.FormEvent<HTMLFormElement>): void => {
   event.preventDefault();
-  console.log(this.state.user + " " + this.state.email + " " +  this.state.phone + " " + this.state.birth + " " + this.state.message)
+  const data = {
+    user: this.state.user,
+    email: this.state.email,
+    phone: this.state.phone,
+    birthDate: this.state.birth,
+    message: this.state.message
+  };
+  this.sendAjaxRequest(data);
 };
 
 componentDidMount() {
@@ -192,10 +218,10 @@ componentWillUnmount() {
 };
 
   render() {
-    const { user, userError, email, emailError, phone, phoneError, birthError, message, messageError, formValid } = this.state;
+    const { userError, emailError, phoneError, birthError, messageError, formValid, pending } = this.state;
 
     return (
-      <React.Fragment>
+      <div className="form-wrapper">
         <form onSubmit={ this.handleSubmit }>
           <span>Please, fill in all fields</span>
           <div>
@@ -203,8 +229,7 @@ componentWillUnmount() {
             <input
               type="text"
               name="user"
-              data-state=""
-              value={ user }
+              className="field"
               onBlur={ this.userValidator }
               onInput={ this.userValidator }
               onKeyUp={ this.userValidator }
@@ -216,8 +241,7 @@ componentWillUnmount() {
             <label>E-mail</label>
             <input
               type="email"
-              data-state=""
-              value={ email }
+              className="field"
               onBlur={ this.emailValidator }
               onInput={ this.emailValidator }
               onKeyUp={ this.emailValidator }
@@ -229,8 +253,7 @@ componentWillUnmount() {
             <label>Phone</label>
             <input
               type="text"
-              data-state=""
-              value={ phone }
+              className="field"
               placeholder="+7(000)000-00-00"
               id="phone"
               onKeyUp={ this.phoneMaskValidator }
@@ -244,6 +267,7 @@ componentWillUnmount() {
             <label>Date of Birth</label>
             <input
               type="date"
+              className="field"
               onChange={ this.birthValidator }
               onBlur={ this.birthValidator }
             />
@@ -253,8 +277,7 @@ componentWillUnmount() {
           <div>
             <label>Your message (300 characters maximum)</label>
             <textarea
-              data-state=""
-              value={ message }
+              className="field"
               maxLength={ 300 }
               onChange={ this.messageValidator}
               onBlur={ this.messageValidator }
@@ -263,7 +286,9 @@ componentWillUnmount() {
           </div>
           <button type="submit" disabled={ !formValid }>Send</button>
         </form>
-      </React.Fragment>
+        <span className="server-answer"></span>
+        { pending && <Loader /> }
+      </div>
     );
   };
 };

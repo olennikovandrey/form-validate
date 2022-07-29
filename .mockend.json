@@ -1,0 +1,12 @@
+{
+  "successData":
+    {
+      "status": "success",
+      "text": "Thank you for your comment!"
+    },
+  "errorData":
+    {
+      "status": "error",
+      "text": "Something wrong, try again later"
+    }
+}

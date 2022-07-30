@@ -183,7 +183,7 @@ sendAjaxRequest = (data: SendingData) => {
   xhr.onreadystatechange = () => {
     if (xhr.readyState !== 4) return;
 
-    if (xhr.status !== 200) {
+    if (xhr.status !== 201) {
       this.setState({
         pending: false,
         formValid: true
@@ -207,8 +207,8 @@ sendAjaxRequest = (data: SendingData) => {
       });
 
       allFields.forEach(function(el) { el.setAttribute("data-state", "") });
-      document.getElementsByTagName("form")[0].reset()
-      serverAnswerField!.innerHTML = (JSON.parse(xhr.responseText).text); //for pasting response text to UI from recieved json (lemited API)
+      document.getElementsByTagName("form")[0].reset();
+      serverAnswerField!.innerHTML = JSON.parse(xhr.responseText).text; //for pasting response text to UI from recieved json (lemited API)
       //serverAnswerField!.innerHTML = (JSON.parse(xhr.responseText).record.phone); //for pasting response text to UI from recieved json (unlimited)
       setTimeout(() => { serverAnswerField!.innerHTML = "" }, 7500);
     };

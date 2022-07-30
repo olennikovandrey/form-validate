@@ -33,7 +33,7 @@ export default class Form extends Component<FormProps, FormState> {
 
 userValidator = (event: React.FormEvent<HTMLInputElement>): void => {
   const usersArr: string[] = event.currentTarget.value.replace(/\s+/g, " ").split(" ");
-  if (usersArr.length > 2) { usersArr.length = 2 }
+  if (usersArr.length > 2) { usersArr.length = 2 };
 
   this.setState({
     user: usersArr.join(" ")
@@ -164,20 +164,20 @@ formValidChecker = (): void => {
   };
 };
 
-sendAjaxRequest = (data: object) => {
+sendAjaxRequest = (data: SendingData) => {
   this.setState({
     pending: true,
     formValid: false
   });
 
-  const allFields = document.querySelectorAll(".field");
-  const serverAnswerField = document.querySelector(".server-answer");
-  const xhr = new XMLHttpRequest();
+  const allFields: NodeListOf<Element> = document.querySelectorAll(".field");
+  const serverAnswerField: Element | null = document.querySelector(".server-answer");
+  const xhr: XMLHttpRequest = new XMLHttpRequest();
 
-  //xhr.open("POST", "https://62e43a583c89b95396d929bb.mockapi.io/olennikovandrey/formvalid", true);
-  xhr.open("POST", "https://api.jsonbin.io/v3/b", true);
+  xhr.open("POST", "https://62e43a583c89b95396d929bb.mockapi.io/olennikovandrey/formvalid", true); //test API server with my json answer
+  //xhr.open("POST", "https://api.jsonbin.io/v3/b", true); //for test, unlimited API service
   xhr.setRequestHeader("Content-Type", "application/json");
-  xhr.setRequestHeader("X-Master-Key", "$2b$10$aOlYwEThIpuMzMIMsI64L.4uqkdh/GrM0p2T48mKdpi5HaTDmmQfq");//
+  //xhr.setRequestHeader("X-Master-Key", "$2b$10$aOlYwEThIpuMzMIMsI64L.4uqkdh/GrM0p2T48mKdpi5HaTDmmQf"); //for test, unlimited API service
   xhr.send(JSON.stringify(data));
 
   xhr.onreadystatechange = () => {
@@ -208,8 +208,8 @@ sendAjaxRequest = (data: object) => {
 
       allFields.forEach(function(el) { el.setAttribute("data-state", "") });
       document.getElementsByTagName("form")[0].reset()
-      //serverAnswerField!.innerHTML = (JSON.parse(xhr.responseText).text);
-      serverAnswerField!.innerHTML = (JSON.parse(xhr.responseText).record.phone);
+      serverAnswerField!.innerHTML = (JSON.parse(xhr.responseText).text); //for pasting response text to UI from recieved json (lemited API)
+      //serverAnswerField!.innerHTML = (JSON.parse(xhr.responseText).record.phone); //for pasting response text to UI from recieved json (unlimited)
       setTimeout(() => { serverAnswerField!.innerHTML = "" }, 7500);
     };
   };
@@ -222,8 +222,8 @@ handleSubmit = (event: React.FormEvent<HTMLFormElement>): void => {
   const isUserValid: boolean = this.state.user.split(" ").map(item => /^[a-z]{3,30}\b$/i.test(item)).every(bool => bool);
   const isEmailValid: boolean = /^([^.@]+)(\.[^.@]+)*@([a-z]+\.)+([a-z]+){2,4}$/.test(this.state.email);
   const isPhoneValid: boolean = /^\+?[7][-(]?\d{3}\)?\d{3}-?\d{2}-?\d{2}$/.test(this.state.phone);
-  const isBirthValid: boolean = /^\d{2}\.\d{2}\.\d{4}$/.test(this.state.birth);
-  const isMessageValid: boolean = this.state.message.length > 10 && this.state.message.length < 300;
+  const isBirthValid: boolean = /^\d{1,2}\.?\/?\d{1,2}\.?\/?\d{4}$/.test(this.state.birth);
+  const isMessageValid: boolean = this.state.message.length > 10 && this.state.message.length <= 300;
 
   if (isUserValid && isEmailValid && isPhoneValid && isBirthValid && isMessageValid) {
     this.sendAjaxRequest(data);

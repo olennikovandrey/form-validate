@@ -1,6 +1,8 @@
 import Loader from "../Loader/Loader"
 import IMask from "imask";
-import { FormState } from "types/types";
+import { FormState } from "../../types/types";
+import { SendingData } from "../../classes/sendingData";
+import { preSendValidResults } from "../../classes/preSendValidResults";
 import React, { Component } from "react";
 
 type FormProps = {};
@@ -12,7 +14,7 @@ export default class Form extends Component<FormProps, FormState> {
       user: "",
       email: "",
       phone: "",
-      birth: "" || null,
+      birth: "",
       message: "",
       userValid: false,
       userError: "",
@@ -30,14 +32,17 @@ export default class Form extends Component<FormProps, FormState> {
   };
 
 userValidator = (event: React.FormEvent<HTMLInputElement>): void => {
+  const usersArr: string[] = event.currentTarget.value.replace(/\s+/g, " ").split(" ");
+  if (usersArr.length > 2) { usersArr.length = 2 }
+
   this.setState({
-    user: event.currentTarget.value.replace(/\s+/g, " ")
+    user: usersArr.join(" ")
   });
-  const user = this.state.user;
-  const usersArr = user.split(" ");
-  const isWordsLength = usersArr.every(word => word.length >= 3 && word.length <= 30);
-  const regexp = /^[a-z\s]+$/i;
-  const isLatinLetters = usersArr.every(letter => regexp.test(letter));
+
+  const user: string = this.state.user;
+  const isWordsLength: boolean = usersArr.every(word => word.length >= 3 && word.length <= 30);
+  const regexp: RegExp = /^[a-z]*$/i;
+  const isLatinLetters: boolean = usersArr.every(letter => regexp.test(letter));
 
   if (!user) {
     this.setState({ userValid: false });
@@ -66,9 +71,10 @@ emailValidator = (event: React.FormEvent<HTMLInputElement>): void => {
   this.setState({
     email: event.currentTarget.value.toLowerCase()
   });
-  const email = this.state.email;
-  const regexp = /^([^.@]+)(\.[^.@]+)*@([a-z]+\.)+([a-z]+){2,4}$/;
-  const isEmail = regexp.test(email);
+
+  const email: string = this.state.email;
+  const regexp: RegExp = /^([^.@]+)(\.[^.@]+)*@([a-z]+\.)+([a-z]+){2,4}$/;
+  const isEmail: boolean = regexp.test(email);
 
   if (!email) {
     this.setState({ emailValid: false });
@@ -86,14 +92,14 @@ emailValidator = (event: React.FormEvent<HTMLInputElement>): void => {
 };
 
 phoneMaskValidator = (event: React.FormEvent<HTMLInputElement>): void => {
-  const phoneInput = document.getElementById("phone");
+  const phoneInput: HTMLElement | null = document.getElementById("phone");
   const maskOptions = {
     mask: "+{7}(000)000-00-00"
   };
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const mask = IMask(phoneInput!, maskOptions);
   this.setState({ phone: event.currentTarget.value });
-  const phone = event.currentTarget.value
+  const phone: string = event.currentTarget.value
 
   if (!phone) {
     this.setState({ phoneValid: false });
@@ -111,8 +117,8 @@ phoneMaskValidator = (event: React.FormEvent<HTMLInputElement>): void => {
 };
 
 birthValidator = (event: React.FormEvent<HTMLInputElement>): void => {
-  const date = new Date(event.currentTarget.value);
-  const regexp = /[a-zа-яё]/i
+  const date: Date = new Date(event.currentTarget.value);
+  const regexp: RegExp = /[a-zа-яё]/i;
 
   this.setState({
     birth: date.toLocaleDateString()
@@ -133,7 +139,7 @@ messageValidator = (event: React.FormEvent<HTMLTextAreaElement>): void => {
   this.setState({
     message: event.currentTarget.value
   });
-  const message = event.currentTarget.value;
+  const message: string = event.currentTarget.value;
 
   if (!message) {
     this.setState({ messageValid: false });
@@ -152,14 +158,10 @@ messageValidator = (event: React.FormEvent<HTMLTextAreaElement>): void => {
 
 formValidChecker = (): void => {
   if (this.state.userValid && this.state.emailValid && this.state.phoneValid && this.state.birthValid && this.state.messageValid) {
-    this.setState({
-      formValid: true
-    })
+    this.setState({ formValid: true });
   } else {
-    this.setState({
-      formValid: false
-    })
-  }
+    this.setState({ formValid: false });
+  };
 };
 
 sendAjaxRequest = (data: object) => {
@@ -175,38 +177,61 @@ sendAjaxRequest = (data: object) => {
   //xhr.open("POST", "https://62e43a583c89b95396d929bb.mockapi.io/olennikovandrey/formvalid", true);
   xhr.open("POST", "https://api.jsonbin.io/v3/b", true);
   xhr.setRequestHeader("Content-Type", "application/json");
-  xhr.setRequestHeader("X-Master-Key", "$2b$10$aOlYwEThIpuMzMIMsI64L.4uqkdh/GrM0p2T48mKdpi5HaTDmmQfq");
+  xhr.setRequestHeader("X-Master-Key", "$2b$10$aOlYwEThIpuMzMIMsI64L.4uqkdh/GrM0p2T48mKdpi5HaTDmmQfq");//
   xhr.send(JSON.stringify(data));
 
-  xhr.onload = () => {
-    this.setState({
-      pending: false,
-      user: "",
-      email: "",
-      phone: "",
-      birth: "",
-      message: "",
-    });
-    allFields.forEach(function(el) { el.setAttribute("data-state", "") });
-    document.getElementsByTagName("form")[0].reset()
-    //serverAnswerField!.innerHTML = (JSON.parse(xhr.responseText).text);
-    serverAnswerField!.innerHTML = (JSON.parse(xhr.responseText).record.phone);
-    setTimeout(() => { serverAnswerField!.innerHTML = "" }, 7500);
-  };
+  xhr.onreadystatechange = () => {
+    if (xhr.readyState !== 4) return;
 
-  xhr.onerror = () => document.querySelector(".server-answer")!.innerHTML = "Something wrong, try again";
+    if (xhr.status !== 200) {
+      this.setState({
+        pending: false,
+        formValid: true
+      });
+      document.querySelector(".server-answer")!.innerHTML = xhr.responseText;
+      setTimeout(() => { serverAnswerField!.innerHTML = "" }, 7500);
+    } else {
+      this.setState({
+        pending: false,
+        userValid: false,
+        emailValid: false,
+        phoneValid: false,
+        birthValid: false,
+        messageValid: false,
+        formValid: false,
+        user: "",
+        email: "",
+        phone: "",
+        birth: "",
+        message: "",
+      });
+
+      allFields.forEach(function(el) { el.setAttribute("data-state", "") });
+      document.getElementsByTagName("form")[0].reset()
+      //serverAnswerField!.innerHTML = (JSON.parse(xhr.responseText).text);
+      serverAnswerField!.innerHTML = (JSON.parse(xhr.responseText).record.phone);
+      setTimeout(() => { serverAnswerField!.innerHTML = "" }, 7500);
+    };
+  };
 };
 
 handleSubmit = (event: React.FormEvent<HTMLFormElement>): void => {
   event.preventDefault();
-  const data = {
-    user: this.state.user,
-    email: this.state.email,
-    phone: this.state.phone,
-    birthDate: this.state.birth,
-    message: this.state.message
+
+  const data: SendingData = new SendingData(this.state.user, this.state.email, this.state.phone, this.state.birth, this.state.message);
+  const isUserValid: boolean = this.state.user.split(" ").map(item => /^[a-z]{3,30}\b$/i.test(item)).every(bool => bool);
+  const isEmailValid: boolean = /^([^.@]+)(\.[^.@]+)*@([a-z]+\.)+([a-z]+){2,4}$/.test(this.state.email);
+  const isPhoneValid: boolean = /^\+?[7][-(]?\d{3}\)?\d{3}-?\d{2}-?\d{2}$/.test(this.state.phone);
+  const isBirthValid: boolean = /^\d{2}\.\d{2}\.\d{4}$/.test(this.state.birth);
+  const isMessageValid: boolean = this.state.message.length > 10 && this.state.message.length < 300;
+
+  if (isUserValid && isEmailValid && isPhoneValid && isBirthValid && isMessageValid) {
+    this.sendAjaxRequest(data);
+  } else {
+    const validData: preSendValidResults = new preSendValidResults(isUserValid, isEmailValid, isPhoneValid, isBirthValid, isMessageValid);
+    const invalidField: string = Object.entries(validData).filter(item => !item[1])[0][0];
+    alert(`Please, check your ${ invalidField }-field for correct filling again`);
   };
-  this.sendAjaxRequest(data);
 };
 
 componentDidMount() {
@@ -218,17 +243,18 @@ componentWillUnmount() {
 };
 
   render() {
-    const { userError, emailError, phoneError, birthError, messageError, formValid, pending } = this.state;
+    const { user, userError, emailError, phoneError, birthError, messageError, formValid, pending } = this.state;
 
     return (
       <div className="form-wrapper">
         <form onSubmit={ this.handleSubmit }>
           <span>Please, fill in all fields</span>
           <div>
-            <label>Name, surname (latin only)</label>
+            <label>Name, surname (latin only) <b>*</b></label>
             <input
               type="text"
               name="user"
+              value={ user }
               className="field"
               onBlur={ this.userValidator }
               onInput={ this.userValidator }
@@ -238,7 +264,7 @@ componentWillUnmount() {
           </div>
 
           <div>
-            <label>E-mail</label>
+            <label>E-mail <b>*</b></label>
             <input
               type="email"
               className="field"
@@ -250,7 +276,7 @@ componentWillUnmount() {
           </div>
 
           <div>
-            <label>Phone</label>
+            <label>Phone <b>*</b></label>
             <input
               type="text"
               className="field"
@@ -264,7 +290,7 @@ componentWillUnmount() {
           </div>
 
           <div>
-            <label>Date of Birth</label>
+            <label>Date of Birth <b>*</b></label>
             <input
               type="date"
               className="field"
@@ -275,7 +301,7 @@ componentWillUnmount() {
           </div>
 
           <div>
-            <label>Your message (300 characters maximum)</label>
+            <label>Your message (300 characters maximum) <b>*</b></label>
             <textarea
               className="field"
               maxLength={ 300 }

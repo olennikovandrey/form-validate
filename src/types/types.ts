@@ -2,7 +2,7 @@ export type FormState = {
   user: string,
   email: string,
   phone: string,
-  birth: string | null,
+  birth: string,
   message: string,
   userValid: boolean,
   emailValid: boolean,

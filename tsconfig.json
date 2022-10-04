@@ -14,6 +14,6 @@
     "typeRoots": ["node_modules/@types", "src/typings"],
     "esModuleInterop": true
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "../fox-libruary/src/services"],
   "exclude": ["node_modules"]
 }
